@@ -1,0 +1,42 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{math}
+
+% packages
+\RequirePackage[utf8]{inputenc} % non ASCII characters 
+\RequirePackage[english]{babel} % language settings
+\RequirePackage{mathtools} % lots of math features (e.g. \coloneqq, :=)
+\RequirePackage{amssymb} % lots of math symbols
+\RequirePackage{amsthm} % theorem styles
+
+% number systems
+\newcommand{\R}[0]{\mathbb{R}}
+\newcommand{\F}[0]{\mathbb{F}}
+\newcommand{\C}[0]{\mathbb{C}}
+\newcommand{\N}[0]{\mathbb{N}}
+\newcommand{\Z}[0]{\mathbb{Z}}
+\newcommand{\Q}[0]{\mathbb{Q}}
+
+% theorems
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}{Lemma}[theorem]
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem*{remark}{Remark}
+\newtheoremstyle{exercise} % name
+    {\topsep}                    % Space above
+    {\topsep}                    % Space below
+    {}                   % Body font
+    {0em}                           % Indent amount
+    {\bfseries}                   % Theorem head font
+    {.}                          % Punctuation after theorem head
+    {.5em}                       % Space after theorem head
+ 	{(\thmname{#1}\thmnumber{ #2}\thmnote{ \textbf{#3}})} % formatting
+\theoremstyle{exercise}
+\newtheorem*{exercise}{Exercise}
+
+%% operators
+
+% linear algebra
+\DeclareMathOperator{\nullspace}{null}
+\DeclareMathOperator{\range}{range}
