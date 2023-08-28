@@ -9,4 +9,4 @@
 headsep=10mm, footskip=12mm}
 
 \AtBeginDocument{\parskip=3mm}
-AtBeginDocument{\parindent=0mm}
+\AtBeginDocument{\parindent=0mm}
