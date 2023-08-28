@@ -20,6 +20,3 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Main
-      working-directory: ./mathematics
-      run: cargo run --verbose
