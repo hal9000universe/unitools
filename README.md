@@ -1,3 +1,3 @@
 ### mathematics
 
-providing organization tools for students of mathematics.
+providing organization tools for students of mathematics & physics.
