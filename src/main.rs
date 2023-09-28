@@ -1,14 +1,32 @@
-use std::fs::{File, read};
+use std::env::join_paths;
+use std::fs::{File, read, read_dir};
 use std::io::{self, BufRead};
 use std::path::Path;
 use pdf_extract::extract_text_from_mem;
 use plotters::prelude::*;
-
-const SOLUTION_FILE: &str = "WiSe23/fake solution.tex";
-const TASK_FILE: &str = "WiSe23/fake task.pdf";
+use walkdir::{WalkDir, DirEntry};
+use chrono::prelude::*;
 
 const SOLUTION_ID: &str = "begin{exercise}";
 const TASK_ID: &str = "Exercise";
+
+fn is_not_hidden(entry: &DirEntry) -> bool {
+    entry
+         .file_name()
+         .to_str()
+         .map(|s| entry.depth() == 0 || !s.starts_with("."))
+         .unwrap_or(false)
+}
+
+fn get_last_monday() -> String {
+    //! Get the date of the last monday
+    //!
+    //! # Returns
+    //! - `DateTime<Local>` - Date of the last monday as "year-month-day"
+    let today: DateTime<Local> = Local::now();
+    let last_monday: DateTime<Local> = today - chrono::Duration::days(today.weekday().num_days_from_monday() as i64);
+    last_monday.format("%Y-%m-%d").to_string()
+}
 
 fn convert_to_text(filename: &str) -> String {
     //! Convert PDF to text
@@ -68,17 +86,14 @@ fn count_tasks_assigned(text: String) -> i32 {
     text.matches(&TASK_ID).count() as i32
 }
 
-// TODO: implement directory traversal
-// TODO: implement dates, change style, refactor
-fn visualize_todos() -> Result<(), Box<dyn std::error::Error>> {
+fn visualize_todos(task_file: &str, solution_file: &str, save_file: &str) -> Result<(), Box<dyn std::error::Error>> {
     //! Creates bar charts of the number of exercises assigned and completed
     //! 
     //! # Returns
     //! - `Result<(), Box<dyn std::error::Error>>` - Result
-    let total_num_tasks: i32 = count_tasks_assigned(convert_to_text(TASK_FILE));
-    let total_num_solutions: i32 = count_exercises_completed(read_lines(SOLUTION_FILE).unwrap());
-
-    let save_file: &str = "WiSe23/todo.png";
+    let total_num_tasks: i32 = count_tasks_assigned(convert_to_text(task_file));
+    let total_num_solutions: i32 = count_exercises_completed(read_lines(solution_file).unwrap());
+    let num_todo: i32 = total_num_tasks - total_num_solutions;
 
     let root = BitMapBackend::new(save_file, (640, 480)).into_drawing_area();
     root.fill(&WHITE).unwrap();
@@ -109,7 +124,7 @@ fn visualize_todos() -> Result<(), Box<dyn std::error::Error>> {
         .draw_series(
             Histogram::vertical(&chart)
                 .style(RED.mix(0.5).filled())
-                .data(vec![(0, total_num_tasks)]),
+                .data(vec![(0, num_todo)]),
         )
         .unwrap()
         .label("todo")
@@ -139,5 +154,51 @@ fn visualize_todos() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn main() {
-    visualize_todos().unwrap();
+    let  save_file: String = String::from("todo.png");
+    // iterate through semester directories 
+    let last_monday: String = get_last_monday();
+    for semester in read_dir("semesters").unwrap() {
+        let semester_path: String = semester.unwrap().path().to_str().unwrap().to_string();
+        // check if semester is file
+        if semester_path.contains(".") {
+            continue;
+        }
+        println!("Processing semester {:?}", semester_path);
+        for course in read_dir(semester_path).unwrap() {
+            let course_path: String = course.unwrap().path().to_str().unwrap().to_string();
+            // check if course is file
+            if course_path.contains(".") {
+                continue;
+            }
+            println!("Processing course {:?}", course_path);
+            for week in read_dir(course_path).unwrap() {
+                let week_path: String = week.unwrap().path().to_str().unwrap().to_string();
+                // check if week is file
+                if week_path.contains(".") {
+                    continue;
+                }
+                println!("Processing week {:?}", week_path);
+                if week_path.contains(&last_monday) {
+                    let save_file: String = join_paths(&[week_path.clone(), save_file.clone()]).unwrap().to_str().unwrap().to_string().replace(":", "/");
+                    // find task and solution files
+                    let mut task_file: String = String::from("");
+                    let mut solution_file: String = String::from("");
+                    for entry in WalkDir::new(week_path.clone()).into_iter().filter_entry(|e| is_not_hidden(e)) {
+                        let entry: DirEntry = entry.unwrap();
+                        let path: String = entry.path().to_str().unwrap().to_string();
+                        if path.contains("task") {
+                            println!("Found task file {:?}", path);
+                            task_file = path;
+                        }
+                        else if path.contains("solution") {
+                            println!("Found solution file {:?}", path);
+                            solution_file = path;
+                        }
+                    }
+                    // visualize todos
+                    visualize_todos(&task_file, &solution_file, &save_file).unwrap();
+                }
+            }
+        }
+    }
 }
