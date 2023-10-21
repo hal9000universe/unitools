@@ -7,14 +7,21 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
-const TASK_IDS: [&str; 5] = [
-    "Exercise",
-    "Aufgabe",
-    "Übung",
-    "ExampleProblem",
-    "HomeworkProblem",
+const TASK_IDS: [&str; 4] = [
+    "aufgabe1(",
+    "aufgabe2(",
+    "aufgabe3(",
+    "aufgabe4(",
 ];
 const SOLUTION_ID: &str = "begin{exercise}";
+
+const TASK_IDENTIFIERS: [&str; 1] = [
+    "ub",
+];
+
+const SOLUTION_IDENTIFIERS: [&str; 1] = [
+    ".tex"
+];
 
 fn is_not_hidden(entry: &DirEntry) -> bool {
     entry
@@ -45,7 +52,7 @@ fn convert_to_text(filename: &str) -> String {
     //! - `String` - Text
     let bytes: Vec<u8> = read(filename).unwrap();
     let text: String = extract_text_from_mem(&bytes).unwrap();
-    text.replace(" ", "")
+    return text.replace(" ", "").trim().to_lowercase()
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -131,7 +138,7 @@ fn visualize_todos(
 
     chart
         .configure_mesh()
-        .y_desc("number of exercises")
+        .y_desc("Number of exercises")
         .axis_desc_style(("sans-serif", 25))
         .disable_x_mesh()
         .disable_y_mesh()
@@ -231,12 +238,22 @@ fn search(semester: &String) {
                 {
                     let entry: DirEntry = entry.unwrap();
                     let path: String = entry.path().to_str().unwrap().to_string().to_lowercase();
-                    if path.contains("task") {
-                        println!("Found task file {:?}", path);
-                        task_file = Some(path);
-                    } else if path.contains("solution") {
-                        println!("Found solution file {:?}", path);
-                        solution_file = Some(path);
+                    let file_name: String = entry.file_name().to_str().unwrap().to_string().to_lowercase();
+
+                    for task_identifier in TASK_IDENTIFIERS.iter() {
+                        if file_name.contains(task_identifier) {
+                            println!("Found task file {:?}", &path);
+                            task_file = Some(path.clone());
+                            break
+                        }
+                    }
+
+                    for solution_identifier in SOLUTION_IDENTIFIERS.iter() {
+                        if file_name.contains(solution_identifier) {
+                            println!("Found solution file {:?}", &path);
+                            solution_file = Some(path);
+                            break
+                        }
                     }
                 }
                 // visualize todos
@@ -251,16 +268,6 @@ fn mathematics() {
     search(&semester);
 }
 
-fn physics() {
-    let semester: String = String::from("LMU/physics/WiSE23");
-    search(&semester);
-}
-
-fn execute() {
-    mathematics();
-    physics();
-}
-
 fn main() {
-    execute();
+    mathematics();
 }
