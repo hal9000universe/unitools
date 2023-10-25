@@ -1,5 +1,6 @@
+#![allow(unused)]
 use chrono::prelude::*;
-use pdf_extract::extract_text_from_mem;
+use lopdf::Document;
 use plotters::prelude::*;
 use std::env::join_paths;
 use std::fs::{read, read_dir, File};
@@ -7,16 +8,21 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
-const TASK_IDS: [&str; 4] = [
+const TASK_IDS: [&str; 8] = [
     "aufgabe1(",
     "aufgabe2(",
     "aufgabe3(",
     "aufgabe4(",
+    "aufgabe1.",
+    "aufgabe2.",
+    "aufgabe3.",
+    "aufgabe4.",
 ];
 const SOLUTION_ID: &str = "begin{exercise}";
 
-const TASK_IDENTIFIERS: [&str; 1] = [
+const TASK_IDENTIFIERS: [&str; 2] = [
     "ub",
+    "uebungsblatt"
 ];
 
 const SOLUTION_IDENTIFIERS: [&str; 1] = [
@@ -50,9 +56,17 @@ fn convert_to_text(filename: &str) -> String {
     //!
     //! # Returns
     //! - `String` - Text
-    let bytes: Vec<u8> = read(filename).unwrap();
-    let text: String = extract_text_from_mem(&bytes).unwrap();
-    return text.replace(" ", "").trim().to_lowercase()
+    let text: String = match Document::load(filename) {
+        Ok(doc) => {
+            let mut text: String = String::from("");
+            for (idx, page) in doc.get_pages().iter().enumerate().map(|(x, y)| ((x + 1) as u32, y)) {
+                text += doc.extract_text(&[idx]).unwrap().as_str();
+            }
+            return text
+        },
+        Err(_) => String::from(""),
+    };
+    return text;
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -97,6 +111,7 @@ fn count_tasks_assigned(text: String) -> u32 {
     //!
     //! # Returns
     //! - `i32` - Number of tasks assigned
+    let text = text.replace(" ", "").as_str().trim().to_lowercase();
     let mut count: u32 = 0;
     for task_id in TASK_IDS.iter() {
         count += text.matches(task_id).count() as u32;
