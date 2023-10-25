@@ -48,7 +48,7 @@ fn get_last_monday() -> String {
     last_monday.format("%Y-%m-%d").to_string()
 }
 
-fn convert_to_text(filename: &str) -> String {
+fn convert_to_text(filename: &String) -> String {
     //! Convert PDF to text
     //!
     //! # Arguments
@@ -84,15 +84,15 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn count_exercises_completed(lines: io::Lines<io::BufReader<File>>) -> u32 {
+fn count_exercises_completed(lines: io::Lines<io::BufReader<File>>) -> usize {
     //! Count number of exercises completed
     //!
     //! # Arguments
     //! - `lines` - Lines iterator
     //!
     //! # Returns
-    //! - `i32` - Number of exercises completed
-    let mut count: u32 = 0;
+    //! - `usize` - Number of exercises completed
+    let mut count: usize = 0;
     for line in lines {
         let line: String = line.unwrap();
         if line.contains(&SOLUTION_ID) {
@@ -103,40 +103,32 @@ fn count_exercises_completed(lines: io::Lines<io::BufReader<File>>) -> u32 {
     count
 }
 
-fn count_tasks_assigned(text: String) -> u32 {
+fn count_tasks_assigned(text: String) -> usize {
     //! Count number of tasks assigned
     //!
     //! # Arguments
     //! - `text` - Text
     //!
     //! # Returns
-    //! - `i32` - Number of tasks assigned
+    //! - `usize` - Number of tasks assigned
     let text = text.replace(" ", "").as_str().trim().to_lowercase();
-    let mut count: u32 = 0;
+    let mut count: usize = 0;
     for task_id in TASK_IDS.iter() {
-        count += text.matches(task_id).count() as u32;
+        count += text.matches(task_id).count();
     }
     return count;
 }
 
 fn visualize_todos(
-    task_file: &Option<String>,
-    solution_file: &Option<String>,
-    save_file: &str,
+    save_file: &String,
+    num_tasks: usize,
+    num_solutions: usize,
 ) -> Result<(), Box<dyn std::error::Error>> {
     //! Creates bar charts of the number of exercises assigned and completed
     //!
     //! # Returns
     //! - `Result<(), Box<dyn std::error::Error>>` - Result
-    let total_num_tasks: u32 = match task_file {
-        Some(task_file) => count_tasks_assigned(convert_to_text(task_file)),
-        None => 0,
-    };
-    let total_num_solutions: u32 = match solution_file {
-        Some(solution_file) => count_exercises_completed(read_lines(solution_file)?),
-        None => 0,
-    };
-    let num_todo: u32 = total_num_tasks - total_num_solutions;
+    let num_todo: usize = num_tasks - num_solutions;
 
     let root = BitMapBackend::new(save_file, (640, 480)).into_drawing_area();
     root.fill(&WHITE).unwrap();
@@ -148,7 +140,7 @@ fn visualize_todos(
         .x_label_area_size(30)
         .y_label_area_size(30)
         .set_label_area_size(LabelAreaPosition::Left, 60)
-        .build_cartesian_2d(0..3, 0..total_num_tasks + 1)
+        .build_cartesian_2d(0..3, 0..num_tasks + 1)
         .unwrap();
 
     chart
@@ -174,7 +166,7 @@ fn visualize_todos(
         .draw_series(
             Histogram::vertical(&chart)
                 .style(GREEN.mix(0.5).filled())
-                .data(vec![(1, total_num_solutions)]),
+                .data(vec![(1, num_solutions)]),
         )
         .unwrap()
         .label("done")
@@ -245,44 +237,44 @@ fn search(semester: &String) {
                     .to_string()
                     .replace(":", "/");
                 // find task and solution files
-                let mut task_file: Option<String> = None;
-                let mut solution_file: Option<String> = None;
+                let mut num_tasks: usize = 0;
+                let mut num_solutions: usize = 0;
                 for entry in WalkDir::new(week_path.clone())
                     .into_iter()
                     .filter_entry(|e| is_not_hidden(e))
                 {
                     let entry: DirEntry = entry.unwrap();
                     let path: String = entry.path().to_str().unwrap().to_string().to_lowercase();
-                    let file_name: String = entry.file_name().to_str().unwrap().to_string().to_lowercase();
 
                     for task_identifier in TASK_IDENTIFIERS.iter() {
-                        if file_name.contains(task_identifier) {
+                        if path.contains(task_identifier) {
                             println!("Found task file {:?}", &path);
-                            task_file = Some(path.clone());
+                            num_tasks = count_tasks_assigned(convert_to_text(&path));
                             break
                         }
                     }
 
                     for solution_identifier in SOLUTION_IDENTIFIERS.iter() {
-                        if file_name.contains(solution_identifier) {
+                        if path.contains(solution_identifier) {
                             println!("Found solution file {:?}", &path);
-                            solution_file = Some(path);
+                            num_solutions = count_exercises_completed(read_lines(&path).unwrap());
                             break
                         }
                     }
                 }
                 // visualize todos
-                visualize_todos(&task_file, &solution_file, &save_file).unwrap();
+                visualize_todos(&save_file, num_tasks, num_solutions).unwrap();
             }
         }
     }
 }
 
-fn mathematics() {
-    let semester: String = String::from("LMU/mathematics/WiSE23");
+fn mathematics(semester: &String) {
     search(&semester);
 }
 
 fn main() {
-    mathematics();
+    let semester: String = String::from("LMU/mathematics/WiSE23");
+    make_mondays(&semester, &get_last_monday());
+    mathematics(&semester);
 }
