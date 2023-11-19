@@ -189,7 +189,6 @@ fn make_mondays(semester: &String, monday: &String) {
     //! Creates directories for mondays if they do not exist
     for course in read_dir(semester).unwrap() {
         let course_path: String = course.unwrap().path().to_str().unwrap().to_string();
-        println!("Processing course ccc {:?}", &course_path);
         // check if semester is file
         if course_path.contains(".") {
             continue;
@@ -229,7 +228,7 @@ fn search(semester: &String) {
                 continue;
             }
             println!("Processing week {:?}", week_path);
-            if week_path.contains(&last_monday) {
+            {
                 let save_file: String = join_paths(&[&week_path, &save_file])
                     .unwrap()
                     .to_str()
@@ -239,12 +238,13 @@ fn search(semester: &String) {
                 // find task and solution files
                 let mut num_tasks: usize = 0;
                 let mut num_solutions: usize = 0;
-                for entry in WalkDir::new(week_path.clone())
+                for entry in WalkDir::new(week_path)
                     .into_iter()
                     .filter_entry(|e| is_not_hidden(e))
                 {
                     let entry: DirEntry = entry.unwrap();
                     let path: String = entry.path().to_str().unwrap().to_string().to_lowercase();
+                    println!("Processing file {:?}", &path);
 
                     for task_identifier in TASK_IDENTIFIERS.iter() {
                         if path.contains(task_identifier) {
