@@ -1,29 +1,17 @@
-#![allow(unused)]
+use std::env::join_paths;
+use std::fs::{File, read_dir};
+use std::io::{self, BufRead};
+use std::path::Path;
+
 use chrono::prelude::*;
 use lopdf::Document;
 use plotters::prelude::*;
-use std::env::join_paths;
-use std::fs::{read, read_dir, File};
-use std::io::{self, BufRead};
-use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 
-const TASK_IDS: [&str; 8] = [
-    "aufgabe1(",
-    "aufgabe2(",
-    "aufgabe3(",
-    "aufgabe4(",
-    "aufgabe1.",
-    "aufgabe2.",
-    "aufgabe3.",
-    "aufgabe4.",
-];
+const TASK_IDS: [&str; 0] = [];
 const SOLUTION_ID: &str = "begin{exercise}";
 
-const TASK_IDENTIFIERS: [&str; 2] = [
-    "ub",
-    "uebungsblatt"
-];
+const TASK_IDENTIFIERS: [&str; 0] = [];
 
 const SOLUTION_IDENTIFIERS: [&str; 1] = [
     ".tex"
@@ -276,5 +264,4 @@ fn mathematics(semester: &String) {
 fn main() {
     let semester: String = String::from("LMU/mathematics/WiSE23");
     make_mondays(&semester, &get_last_monday());
-    mathematics(&semester);
 }

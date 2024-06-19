@@ -2,11 +2,13 @@
 \ProvidesPackage{math}
 
 % packages
-\RequirePackage[utf8]{inputenc} % non ASCII characters 
-\RequirePackage[english]{babel} % language settings
-\RequirePackage{mathtools} % lots of math features (e.g. \coloneqq, :=)
-\RequirePackage{amssymb} % lots of math symbols
+\RequirePackage{mathtools} % math features
+\RequirePackage{amssymb} % math symbols
+\RequirePackage{amsmath}
 \RequirePackage{amsthm} % theorem styles
+\RequirePackage{tikz} % plots
+\RequirePackage{tikz-cd} % commutative diagrams
+\RequirePackage{stmaryrd} % lightning
 
 % number systems
 \newcommand{\R}[0]{\mathbb{R}}
@@ -15,19 +17,109 @@
 \newcommand{\N}[0]{\mathbb{N}}
 \newcommand{\Z}[0]{\mathbb{Z}}
 \newcommand{\Q}[0]{\mathbb{Q}}
+\newcommand{\Zp}[0]{\Z\slash p\Z}
+\newcommand{\qmod}[2]{#1\slash#2}
+\newcommand{\K}[0]{\mathbb{K}}
 
-% fancy math letters
-\newcommand{\AA}[0]{\mathcal{A}}
-\newcommand{\PP}[0]{\mathcal{P}}
-\newcommand{\LL}[0]{\mathcal{L}}
-\newcommand{\OO}[0]{\mathcal{O}}
-\newcommand{\MM}[0]{\mathcal{M}}
-\newcommand{\DD}[0]{\mathcal{D}}
+% operators
+\newcommand{\fsum}[2]{\sum_{#1}^{#2}}
+\newcommand{\fosum}[2]{\bigoplus_{#1}^{#2}}
+\newcommand{\fprod}[2]{\prod_{#1}^{#2}}
+\newcommand{\fint}[2]{\int_{#1}^{#2}}
+\newcommand{\fcup}[2]{\bigcup_{#1}^{#2}} 
+\newcommand{\fcap}[2]{\bigcap_{#1}^{#2}}
+
+% fancy letters
+\newcommand{\fA}[0]{\mathcal{A}}
+\newcommand{\fD}[0]{\mathcal{D}}
+\newcommand{\fM}[0]{\mathcal{M}}
+\newcommand{\fP}[0]{\mathcal{P}}
+\newcommand{\fL}[0]{\mathcal{L}}
+\newcommand{\fO}[0]{\mathcal{O}}
+\newcommand{\fF}[0]{\mathcal{F}}
+\newcommand{\fN}[0]{\mathcal{N}}
+\newcommand{\fR}[0]{\mathcal{R}}
+\newcommand{\fT}[0]{\mathcal{T}}
+\newcommand{\dx}[0]{\; dx \;}
+\newcommand{\dt}[0]{\; dt \;}
+
+% helpers
+\newcommand{\inv}[1]{#1^{-1}}
+\newcommand{\nb}[1]{\left(#1\right)}
+\newcommand{\cob}[1]{\left[#1\right]}
+\newcommand{\id}[1]{\text{id}_{#1}}
+\newcommand{\hull}[1]{\left\langle #1 \right\rangle}
+\newcommand{\pow}[2]{#1^{#2}}
+
+% limits
+\newcommand{\limit}[2]{\lim_{#1 \rightarrow #2}}
+\newcommand{\inflim}[0]{\lim_{n \rightarrow \infty}}
+\newcommand{\limsupn}[0]{\limsup_{n \rightarrow \infty}}
+\newcommand{\liminfn}[0]{\liminf_{n \rightarrow \infty}}
+\newcommand{\alim}[0]{\lim_{a \rightarrow 0}}
+\newcommand{\blim}[0]{\lim_{b \rightarrow \infty}}
+
+% norms
+\newcommand{\norm}[1]{\left\Vert #1 \right\Vert}
+\newcommand{\abs}[1]{\left\vert #1 \right\vert}
+\newcommand{\infnorm}[0]{\norm{\cdot}_\infty}
+\newcommand{\conv}[0]{\, \ast \,}
+
+% functions
+\newcommand{\fun}[3]{#1: #2 \rightarrow #3}
+\newcommand{\map}[5]{\fun{#1}{#2}{#3}, \; #4 \mapsto #5}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\order}[1]{\fO\left( #1 \right)}
+\renewcommand{\deg}[1]{\text{deg}\left(#1\right)}
+\renewcommand{\exp}[1]{\text{exp}\left(#1\right)}
+\newcommand{\Si}[0]{\text{Si}}
+\newcommand{\rest}[2]{#1\vert_{#2}}
+
+% linear 
+\newcommand{\alg}[1]{\text{alg}(#1)}
+\newcommand{\geom}[1]{\text{geom}(#1)}
+\newcommand{\tr}[1]{\text{tr}(#1)}
+\newcommand{\kernel}[1]{\text{ker}\left(#1\right)}
+\newcommand{\image}[1]{\text{im}\left(#1\right)}
+\newcommand{\im}[0]{\text{im }}
+\newcommand{\eig}[2]{\text{Eig}\left(#1, #2\right)}
+\newcommand{\lin}[1]{\fL\left(#1\right)}
+\newcommand{\spec}[1]{\sigma\left(#1\right)}
+\newcommand{\diag}[1]{\text{diag}\left(#1\right)}
+
+% spaces
+\newcommand{\lp}[2]{l^{#2}(#1)}
+\newcommand{\inner}[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\pnorm}[2]{\Vert #1 \Vert_{#2}}
+\newcommand{\cball}[2]{\overline{B_{#2}(#1)}}
+\newcommand{\linspan}[1]{\text{span } \{ #1 \}}
+
+% fourier
+\newcommand{\ft}[1]{\left(\fF#1\right)}
+\newcommand{\ftp}[1]{\left(\fF_N #1 \right)}
+
+% proof helpers
+\newcommand\blitz{\lightning}
+\newcommand{\contra}[1]{\; \blitz \text{ #1}}
+\newcommand{\ciff}[1]{\overset{\text{#1}}{\iff}}
+\newcommand{\ceq}[1]{\overset{\text{#1}}{=}}
+\newcommand{\cleq}[1]{\overset{\text{#1}}{\leq}}
+\newcommand{\cgeq}[1]{\overset{\text{#1}}{\geq}}
+\newcommand{\cimplies}[1]{\overset{\text{#1}}{\implies}}
+\newcommand{\cimpliedby}[1]{\overset{\text{#1}}{\impliedby}}
+
+% physics
+\newcommand{\rdot}[0]{\dot{r}}
+\newcommand{\rddot}[0]{\ddot{r}}
+\newcommand{\dif}[2]{\frac{d#1}{d#2}}
+\newcommand{\velo}[1]{\frac{d\vec{#1}}{dt}}
+\newcommand{\acc}[1]{\frac{d^2\vec{#1}}{dt^2}}
 
 % theorems
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{corollary}{Corollary}[theorem]
-\newtheorem{lemma}{Lemma}[theorem]
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \newtheorem*{remark}{Remark}
@@ -42,13 +134,3 @@
  	{(\thmname{#1}\thmnumber{ #2}\thmnote{ \textbf{#3}})} % formatting
 \theoremstyle{exercise}
 \newtheorem*{exercise}{Exercise}
-
-%% operators
-
-% linear algebra
-\DeclareMathOperator{\nullspace}{null}
-\DeclareMathOperator{\range}{range}
-\DeclareMathOperator{\rank}{rank}
-\DeclareMathOperator{\trace}{tr}
-\DeclareMathOperator{\diag}{diag}
-\DeclareMathOperator{\span}{span}
