@@ -269,7 +269,7 @@ fn mathematics(semester: &String) {
 }
 
 fn main() {
-    let semester: String = String::from("LMU/mathematics/WiSe24");
+    let semester: String = String::from("LMU/mathematics/SoSe25");
     let physics: String = String::from("LMU/physics/Aufgaben");
     make_mondays(&semester, &get_next_monday());
     make_mondays(&physics, &get_next_monday());
