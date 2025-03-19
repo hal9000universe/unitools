@@ -36,6 +36,13 @@ fn get_last_monday() -> String {
     last_monday.format("%Y-%m-%d").to_string()
 }
 
+fn get_next_monday() -> String {
+    let today: DateTime<Local> = Local::now();
+    let next_monday: DateTime<Local> =
+        today + chrono::Duration::days(7 - today.weekday().num_days_from_monday() as i64);
+    next_monday.format("%Y-%m-%d").to_string()
+}
+
 fn convert_to_text(filename: &String) -> String {
     //! Convert PDF to text
     //!
@@ -47,14 +54,14 @@ fn convert_to_text(filename: &String) -> String {
     let text: String = match Document::load(filename) {
         Ok(doc) => {
             let mut text: String = String::from("");
-            for (idx, page) in doc.get_pages().iter().enumerate().map(|(x, y)| ((x + 1) as u32, y)) {
+            for (idx, _page) in doc.get_pages().iter().enumerate().map(|(x, y)| ((x + 1) as u32, y)) {
                 text += doc.extract_text(&[idx]).unwrap().as_str();
             }
             return text
         },
         Err(_) => String::from(""),
     };
-    return text;
+    text
 }
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -104,7 +111,7 @@ fn count_tasks_assigned(text: String) -> usize {
     for task_id in TASK_IDS.iter() {
         count += text.matches(task_id).count();
     }
-    return count;
+    count
 }
 
 fn visualize_todos(
@@ -177,7 +184,7 @@ fn make_mondays(semester: &String, monday: &String) {
     //! Creates directories for mondays if they do not exist
     for course in read_dir(semester).unwrap() {
         let course_path: String = course.unwrap().path().to_str().unwrap().to_string();
-        // check if semester is file
+        // check if semester is a file
         if course_path.contains(".") {
             continue;
         }
@@ -204,14 +211,14 @@ fn search(semester: &String) {
     println!("Processing semester {:?}", &semester);
     for course in read_dir(&semester).unwrap() {
         let course_path: String = course.unwrap().path().to_str().unwrap().to_string();
-        // check if semester is file
+        // check if semester is a file
         if course_path.contains(".") {
             continue;
         }
         println!("Processing course {:?}", course_path);
         for week in read_dir(course_path).unwrap() {
             let week_path: String = week.unwrap().path().to_str().unwrap().to_string();
-            // check if week is file
+            // check if week is a file
             if week_path.contains(".") {
                 continue;
             }
@@ -262,6 +269,8 @@ fn mathematics(semester: &String) {
 }
 
 fn main() {
-    let semester: String = String::from("LMU/mathematics/WiSE23");
-    make_mondays(&semester, &get_last_monday());
+    let semester: String = String::from("LMU/mathematics/WiSe24");
+    let physics: String = String::from("LMU/physics/Aufgaben");
+    make_mondays(&semester, &get_next_monday());
+    make_mondays(&physics, &get_next_monday());
 }
